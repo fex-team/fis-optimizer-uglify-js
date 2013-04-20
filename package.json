@@ -1,0 +1,22 @@
+{
+    "name" : "fis-optimizer-uglify-js",
+    "description" : "A optimizer for fis to compress js by using uglify-js.",
+    "version" : "0.0.2",
+    "author" : "FIS Team <fis@baidu.com>",
+    "homepage" : "http://fis.baidu.com/",
+    "keywords": [ "fis" ],
+    "main" : "index.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/fouber/fis-optimizer-uglify-js.git"
+    },
+    "engines" : {
+        "node" : ">= 0.8.0"
+    },
+    "scripts" : {
+        "test" : "mocha test/ut --recursive"
+    },
+    "dependencies" : {
+        "uglify-js" : "~2.2.5"
+    }
+}
