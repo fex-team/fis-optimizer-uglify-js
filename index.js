@@ -7,7 +7,7 @@
 
 var UglifyJS = require('uglify-js');
 
-module.exports = function(content, file, conf, fis){
+module.exports = function(content, file, conf){
     conf.fromString = true;
     UglifyJS.AST_Node.warn_function = function(txt){
         fis.log.error(txt)
