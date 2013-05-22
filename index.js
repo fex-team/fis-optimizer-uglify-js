@@ -12,9 +12,9 @@ module.exports = function(content, file, conf){
     UglifyJS.AST_Node.warn_function = function(txt){
         var pos = txt.indexOf('?');
         if(pos === -1){
-            txt += ' filename: ' + file.subpath;
+            txt += ' filename: ' + file.realpath;
         } else {
-            txt = txt.substring(0, pos) + file.subpath + txt.substring(0, pos + 1);
+            txt = txt.substring(0, pos) + file.realpath + txt.substring(pos + 1);
         }
         fis.log.error(txt);
     };
