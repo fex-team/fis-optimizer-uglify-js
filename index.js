@@ -11,9 +11,3 @@ module.exports = function(content, file, conf){
     conf.fromString = true;
     return UglifyJS.minify(content, conf).code;
 };
-
-module.exports.defaultOptions = {
-    compress : {
-        sequences : false
-    }
-};
