@@ -17,9 +17,19 @@ fis.config.set('settings.optimizer.uglify-js', option);
 eg:
 
 ```javascript
-fis.config.set('settings.optimizer.uglify-js', {
-    drop_console: true
-})
+//export, module, require不压缩变量名
+fis.config.merge('settings.optimizer.uglify-js', {
+    mangle: {
+        except: ['export', 'module', 'require']
+    }
+});
+
+//自动去除console.log等调试信息
+fis.config.merge('settings.optimizer.uglify-js', {
+    compress : {
+        drop_console: true
+    }
+});
 ```
 
 `option` 详细请参见 https://github.com/mishoo/UglifyJS2
