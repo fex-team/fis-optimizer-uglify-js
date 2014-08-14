@@ -20,7 +20,7 @@ eg:
 //export, module, require不压缩变量名
 fis.config.merge('settings.optimizer.uglify-js', {
     mangle: {
-        except: 'export, module, require, define'
+        except: 'exports, module, require, define'
     }
 });
 
