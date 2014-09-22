@@ -18,14 +18,14 @@ eg:
 
 ```javascript
 //export, module, require不压缩变量名
-fis.config.merge('settings.optimizer.uglify-js', {
+fis.config.set('settings.optimizer.uglify-js', {
     mangle: {
         except: 'exports, module, require, define'
     }
 });
 
 //自动去除console.log等调试信息
-fis.config.merge('settings.optimizer.uglify-js', {
+fis.config.set('settings.optimizer.uglify-js', {
     compress : {
         drop_console: true
     }
