@@ -45,43 +45,48 @@ var UglifyJS = require('uglify-js');
 //     return ret.code;
 // };
 
-module.exports = function(content, file, conf){
-
-    var mapping = fis.file.wrap(file.dirname + '/' + file.filename + '.map');
-
-    // chrome 不支持 sourcesContent 所以还需要一份源码。
-    var source = fis.file.wrap(file.dirname + '/' + file.filename + '-original' + file.rExt);
-
-    source.setContent(content);
-
+module.exports = function(content, file, conf) {
     conf.fromString = true;
-    conf.outSourceMap = file.basename;
+
+    if (conf.sourceMap) {
+        var mapping = fis.file.wrap(file.dirname + '/' + file.filename + '.map');
+
+        mapping.useDomain = true;
+
+        // chrome 不支持 sourcesContent 所以还需要一份源码。
+        var source = fis.file.wrap(file.dirname + '/' + file.filename + '-original' + file.rExt);
+
+        source.setContent(content);
+
+        conf.outSourceMap = file.basename;
+    }
 
     var ret = UglifyJS.minify(content, conf);
 
-    mapping.useDomain = true;
+    if (conf.sourceMap) {
+        var mapData = JSON.parse(ret.map);
 
-    var mapData = JSON.parse(ret.map);
+        mapData.sources = ['{{url:'+source.subpath+'}}'];
 
-    mapData.sources = ['{{url:'+source.subpath+'}}'];
+        // 排一下顺序！
+        var newData = {
+            version: mapData.version,
+            file: mapData.file,
+            sourceRoot: mapData.sourceRoot || "",
+            sources: mapData.sources,
+            names: mapData.names,
+            mappings: mapData.mappings
+        };
 
-    var newData = {
-        version: mapData.version,
-        file: mapData.file,
-        sourceRoot: mapData.sourceRoot || "",
-        sources: mapData.sources,
-        names: mapData.names,
-        mappings: mapData.mappings
-    };
+        mapping.setContent(JSON.stringify(newData));
 
-    mapping.setContent(JSON.stringify(newData));
+        file.extras = file.extras || {};
+        file.extras.derived = file.extras.derived || [];
+        file.extras.derived.push(mapping);
+        file.extras.derived.push(source);
 
-    file.extras = file.extras || {};
-    file.extras.derived = file.extras.derived || [];
-    file.extras.derived.push(mapping);
-    file.extras.derived.push(source);
-
-    ret.code += '\n//# sourceMappingURL={{url:'+mapping.subpath + '}}\n';
+        ret.code += '\n//# sourceMappingURL={{url:'+mapping.subpath + '}}\n';
+    }
 
     return ret.code;
 };
