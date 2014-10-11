@@ -7,86 +7,39 @@
 
 var UglifyJS = require('uglify-js');
 
-// 直接将源码嵌入到 map 表的版本，但是，似乎 chrome 不支持，先备份！
-// module.exports = function(content, file, conf){
+module.exports = function(content, file, conf){
 
-//     var mapping = fis.file.wrap(file.dirname + '/' + file.filename + '.map');
+    var mapping = fis.file.wrap(file.dirname + '/' + file.filename + '.map');
 
-//     conf.fromString = true;
-//     conf.outSourceMap = file.basename;
-
-//     var ret = UglifyJS.minify(content, conf);
-
-//     mapping.useDomain = true;
-
-//     var mapData = JSON.parse(ret.map);
-
-//     mapData.sources = [file.basename];
-//     mapData.sourcesContent = [content];
-
-//     var newData = {
-//         version: mapData.version,
-//         file: mapData.file,
-//         sourceRoot: mapData.sourceRoot || "",
-//         sources: mapData.sources,
-//         sourcesContent: mapData.sourcesContent,
-//         names: mapData.names,
-//         mappings: mapData.mappings
-//     };
-
-//     mapping.setContent(JSON.stringify(newData));
-
-//     file.extras = file.extras || {};
-//     file.extras.derived = file.extras.derived || [];
-//     file.extras.derived.push(mapping);
-
-//     ret.code += '\n//# sourceMappingURL={{path:'+mapping.subpath + '}}\n';
-
-//     return ret.code;
-// };
-
-module.exports = function(content, file, conf) {
     conf.fromString = true;
-
-    if (conf.sourceMap) {
-        var mapping = fis.file.wrap(file.dirname + '/' + file.filename + '.map');
-
-        mapping.useDomain = true;
-
-        // chrome 不支持 sourcesContent 所以还需要一份源码。
-        var source = fis.file.wrap(file.dirname + '/' + file.filename + '-original' + file.rExt);
-
-        source.setContent(content);
-
-        conf.outSourceMap = file.basename;
-    }
+    conf.outSourceMap = file.filename + '.org' + file.rExt;
 
     var ret = UglifyJS.minify(content, conf);
 
-    if (conf.sourceMap) {
-        var mapData = JSON.parse(ret.map);
+    mapping.useDomain = true;
+    mapping.useHash = true;
 
-        mapData.sources = ['{{url:'+source.subpath+'}}'];
+    var mapData = JSON.parse(ret.map);
 
-        // 排一下顺序！
-        var newData = {
-            version: mapData.version,
-            file: mapData.file,
-            sourceRoot: mapData.sourceRoot || "",
-            sources: mapData.sources,
-            names: mapData.names,
-            mappings: mapData.mappings
-        };
+    mapData.sources = [mapData.file];
+    mapData.sourcesContent = [content];
 
-        mapping.setContent(JSON.stringify(newData));
+    var newData = {
+        version: mapData.version,
+        file: mapData.file,
+        sources: mapData.sources,
+        sourcesContent: mapData.sourcesContent,
+        names: mapData.names,
+        mappings: mapData.mappings
+    };
 
-        file.extras = file.extras || {};
-        file.extras.derived = file.extras.derived || [];
-        file.extras.derived.push(mapping);
-        file.extras.derived.push(source);
+    mapping.setContent(JSON.stringify(newData));
 
-        ret.code += '\n//# sourceMappingURL={{url:'+mapping.subpath + '}}\n';
-    }
+    file.extras = file.extras || {};
+    file.extras.derived = file.extras.derived || [];
+    file.extras.derived.push(mapping);
+
+    ret.code += '\n//# sourceMappingURL={{url:'+mapping.subpath + '}}\n';
 
     return ret.code;
 };
