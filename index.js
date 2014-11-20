@@ -41,7 +41,7 @@ module.exports = function(content, file, conf){
         file.extras.derived = file.extras.derived || [];
         file.extras.derived.push(mapping);
 
-        ret.code += '\n//# sourceMappingURL={{url:'+mapping.subpath + '}}\n';
+        ret.code += '\n//# sourceMappingURL=' + mapping.getUrl(fis.compile.settings.hash, fis.compile.settings.domain); + '\n';
     }
 
 
