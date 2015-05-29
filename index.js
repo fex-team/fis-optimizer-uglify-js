@@ -29,10 +29,9 @@ module.exports = function(content, file, conf){
             names: mapData.names,
             mappings: mapData.mappings
         };
-
+        //inline source map
         ret.code += '\n//# sourceMappingURL=data:application/json;base64,' + fis.util.base64(JSON.stringify(newData));
     }
-
 
     return ret.code;
 };
