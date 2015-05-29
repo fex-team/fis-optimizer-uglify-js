@@ -9,18 +9,13 @@ var UglifyJS = require('uglify-js');
 
 module.exports = function(content, file, conf){
     conf.fromString = true;
-
     if (conf.sourceMap) {
-        var mapping = fis.file.wrap(file.dirname + '/' + file.filename + '.map');
         conf.outSourceMap = file.filename + '.org' + file.rExt;
     }
 
     var ret = UglifyJS.minify(content, conf);
 
     if (conf.sourceMap) {
-        mapping.useDomain = true;
-        mapping.useHash = true;
-
         var mapData = JSON.parse(ret.map);
 
         mapData.sources = [mapData.file];
@@ -35,13 +30,7 @@ module.exports = function(content, file, conf){
             mappings: mapData.mappings
         };
 
-        mapping.setContent(JSON.stringify(newData));
-
-        file.extras = file.extras || {};
-        file.extras.derived = file.extras.derived || [];
-        file.extras.derived.push(mapping);
-
-        ret.code += '\n//# sourceMappingURL=' + mapping.getUrl(fis.compile.settings.hash, fis.compile.settings.domain); + '\n';
+        ret.code += '\n//# sourceMappingURL=data:application/json;base64,' + fis.util.base64(JSON.stringify(newData));
     }
 
 
