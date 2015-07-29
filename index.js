@@ -41,6 +41,8 @@ function uglify(content, file, conf) {
       file.extras.derived = file.extras.derived || [];
       file.extras.derived.push(mapping);
 
+      // 先删掉原始的 sourceMappingURL
+      ret.code = ret.code.replace(/\n?\s*\/\/#\ssourceMappingURL=.*?(?:\n|$)/g, '');
       ret.code += '\n//# sourceMappingURL=' + mapping.getUrl(fis.compile.settings.hash, fis.compile.settings.domain); + '\n';
   }
 
