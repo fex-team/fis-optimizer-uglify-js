@@ -6,6 +6,7 @@
 'use strict';
 
 var UglifyJS = require('uglify-js');
+var util = require('util');
 
 function uglify(content, file, conf) {
   conf.fromString = true;
@@ -52,9 +53,11 @@ function uglify(content, file, conf) {
 module.exports = function(content, file, conf){
 
   try {
+    throw new Error('test');
     content = uglify(content, file, conf);
   } catch (e) {
-    fis.log.warn('Got Error %s while uglify %s', e.message, file.subpath);
+    fis.log.warning(util.format('Got Error %s while uglify %s', e.message, file.subpath));
+    // fis.log.warn('Got Error %s while uglify %s', e.message, file.subpath);
     fis.log.debug(e.stack);
   }
 
