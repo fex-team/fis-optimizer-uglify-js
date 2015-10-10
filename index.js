@@ -19,8 +19,8 @@ function uglify(content, file, conf) {
   var ret = UglifyJS.minify(content, conf);
 
   if (conf.sourceMap) {
-      mapping.useDomain = true;
-      mapping.useHash = true;
+      // mapping.useDomain = true;
+      // mapping.useHash = true;
 
       var mapData = JSON.parse(ret.map);
 
