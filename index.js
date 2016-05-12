@@ -12,8 +12,8 @@ function uglify(content, file, conf) {
   conf.fromString = true;
 
   if (conf.sourceMap) {
-      var mapping = fis.file.wrap(file.dirname + '/' + file.filename + '.map');
-      conf.outSourceMap = file.filename + '.org' + file.rExt;
+  	var mapping = fis.file.wrap(file.dirname + '/' + file.filename + file.rExt + '.map');
+      conf.outSourceMap = mapping.basename;
   }
 
   var ret = UglifyJS.minify(content, conf);
@@ -24,12 +24,12 @@ function uglify(content, file, conf) {
 
       var mapData = JSON.parse(ret.map);
 
-      mapData.sources = [mapData.file];
+      mapData.sources = [file.filename + '.org' + file.rExt];
       mapData.sourcesContent = [content];
 
       var newData = {
           version: mapData.version,
-          file: mapData.file,
+          file: file.filename + file.rExt, //should point to the compressed file, not org
           sources: mapData.sources,
           sourcesContent: mapData.sourcesContent,
           names: mapData.names,
@@ -44,7 +44,7 @@ function uglify(content, file, conf) {
 
       // 先删掉原始的 sourceMappingURL
       ret.code = ret.code.replace(/\n?\s*\/\/#\ssourceMappingURL=.*?(?:\n|$)/g, '');
-      ret.code += '\n//# sourceMappingURL=' + mapping.getUrl(fis.compile.settings.hash, fis.compile.settings.domain); + '\n';
+      ret.code += '\n//# sourceMappingURL=' + mapping.getUrl(fis.compile.settings.hash, fis.compile.settings.domain) + '\n';
   }
 
   return ret.code;
