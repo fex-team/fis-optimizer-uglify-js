@@ -7,24 +7,22 @@
 
 var UglifyJS = require('uglify-js');
 var util = require('util');
+var mergeMap = require('merge-source-map');
 
 function uglify(content, file, conf) {
   conf.fromString = true;
 
   if (conf.sourceMap) {
-      var mapping = fis.file.wrap(file.dirname + '/' + file.filename + '.map');
-      conf.outSourceMap = file.filename + '.org' + file.rExt;
+      var mapping = fis.file.wrap(file.dirname + '/' + file.filename + file.rExt + '.map');
+      conf.outSourceMap = mapping.subpath;
   }
 
   var ret = UglifyJS.minify(content, conf);
 
   if (conf.sourceMap) {
-      // mapping.useDomain = true;
-      // mapping.useHash = true;
-
       var mapData = JSON.parse(ret.map);
 
-      mapData.sources = [mapData.file];
+      mapData.sources = [file.subpath];
       mapData.sourcesContent = [content];
 
       var newData = {
@@ -36,7 +34,15 @@ function uglify(content, file, conf) {
           mappings: mapData.mappings
       };
 
-      mapping.setContent(JSON.stringify(newData));
+
+      var originMapFile = getMapFile(file);
+      if (originMapFile) {
+        file.extras.derived.shift();
+        var merged = mergeMap(JSON.parse(originMapFile.getContent()), newData);
+        mapping.setContent(JSON.stringify(merged));
+      } else {
+        mapping.setContent(JSON.stringify(newData));
+      }
 
       file.extras = file.extras || {};
       file.extras.derived = file.extras.derived || [];
@@ -61,3 +67,16 @@ module.exports = function(content, file, conf){
 
   return content;
 };
+
+function getMapFile(file) {
+  var derived = file.derived;
+  if (!derived || !derived.length) {
+    derived = file.extras && file.extras.derived;
+  }
+
+  if (derived && derived[0] && derived[0].rExt === '.map') {
+    return derived[0];
+  }
+
+  return null;
+}
