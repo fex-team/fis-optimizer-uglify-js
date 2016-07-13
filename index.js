@@ -50,7 +50,7 @@ function uglify(content, file, conf) {
 
       // 先删掉原始的 sourceMappingURL
       ret.code = ret.code.replace(/\n?\s*\/\/#\ssourceMappingURL=.*?(?:\n|$)/g, '');
-      ret.code += '\n//# sourceMappingURL=' + mapping.getUrl(fis.compile.settings.hash, fis.compile.settings.domain); + '\n';
+      ret.code += '\n//# sourceMappingURL=' + mapping.getUrl(fis.compile.settings.hash, fis.compile.settings.domain) + '\n';
   }
 
   return ret.code;
