@@ -13,50 +13,55 @@ function uglify(content, file, conf) {
   conf.fromString = true;
 
   if (conf.sourceMap) {
-      var mapping = fis.file.wrap(file.dirname + '/' + file.filename + file.rExt + '.map');
-      conf.outSourceMap = mapping.subpath;
+    var mapping = fis.file.wrap(file.dirname + '/' + file.filename + file.rExt + '.map');
+    conf.outSourceMap = mapping.subpath;
   }
 
   var ret = UglifyJS.minify(content, conf);
 
   if (conf.sourceMap) {
-      var mapData = JSON.parse(ret.map);
+    var mapData = JSON.parse(ret.map);
 
-      mapData.sources = [file.subpath];
-      mapData.sourcesContent = [content];
+    mapData.sources = [file.subpath];
+    mapData.sourcesContent = [content];
 
-      var newData = {
-          version: mapData.version,
-          file: mapData.file,
-          sources: mapData.sources,
-          sourcesContent: mapData.sourcesContent,
-          names: mapData.names,
-          mappings: mapData.mappings
-      };
+    var newData = {
+      version: mapData.version,
+      file: getRelativeUrl(mapData.file, file),
+      sources: mapData.sources.map(function (target) {
+        return getRelativeUrl(target, file);
+      }),
+      sourcesContent: mapData.sourcesContent,
+      names: mapData.names,
+      mappings: mapData.mappings
+    };
 
 
-      var originMapFile = getMapFile(file);
-      if (originMapFile) {
-        file.extras.derived.shift();
-        var merged = mergeMap(JSON.parse(originMapFile.getContent()), newData);
-        mapping.setContent(JSON.stringify(merged));
-      } else {
-        mapping.setContent(JSON.stringify(newData));
-      }
+    var originMapFile = getMapFile(file);
+    if (originMapFile) {
+      file.extras.derived.shift();
+      var merged = mergeMap(JSON.parse(originMapFile.getContent()), newData);
+      mapping.setContent(JSON.stringify(merged));
+    } else {
+      mapping.setContent(JSON.stringify(newData));
+    }
 
-      file.extras = file.extras || {};
-      file.extras.derived = file.extras.derived || [];
-      file.extras.derived.push(mapping);
+    file.extras = file.extras || {};
+    file.extras.derived = file.extras.derived || [];
+    file.extras.derived.push(mapping);
 
-      // 先删掉原始的 sourceMappingURL
-      ret.code = ret.code.replace(/\n?\s*\/\/#\ssourceMappingURL=.*?(?:\n|$)/g, '');
-      ret.code += '\n//# sourceMappingURL=' + mapping.getUrl(fis.compile.settings.hash, fis.compile.settings.domain) + '\n';
+    // 先删掉原始的 sourceMappingURL
+    var url;
+    ret.code = ret.code.replace(/\n?\s*\/\/#\ssourceMappingURL=.*?(?:\n|$)/g, '');
+    url = mapping.getUrl(fis.compile.settings.hash, fis.compile.settings.domain);
+    url = getRelativeUrl(url, file);
+    ret.code += '\n//# sourceMappingURL=' + url + '\n';
   }
 
   return ret.code;
 }
 
-module.exports = function(content, file, conf){
+module.exports = function (content, file, conf) {
 
   try {
     content = uglify(content, file, conf);
@@ -67,6 +72,18 @@ module.exports = function(content, file, conf){
 
   return content;
 };
+
+function getRelativeUrl(target, file) {
+  var msg = {
+    target: target,
+    file: file,
+    ret: target && target.url || target
+  };
+  if (file.relative) {
+    fis.emit('plugin:relative:fetch', msg);
+  }
+  return msg.ret;
+}
 
 function getMapFile(file) {
   var derived = file.derived;
