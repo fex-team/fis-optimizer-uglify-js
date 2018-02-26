@@ -35,9 +35,8 @@ function uglify(content, file, conf) {
       };
 
 
-      var originMapFile = getMapFile(file);
+      var originMapFile = popMapFile(file);
       if (originMapFile) {
-        file.extras.derived.shift();
         var merged = mergeMap(JSON.parse(originMapFile.getContent()), newData);
         mapping.setContent(JSON.stringify(merged));
       } else {
@@ -68,14 +67,23 @@ module.exports = function(content, file, conf){
   return content;
 };
 
-function getMapFile(file) {
+function popMapFile(file) {
   var derived = file.derived;
-  if (!derived || !derived.length) {
-    derived = file.extras && file.extras.derived;
-  }
+  var extraDerived = file.extras && file.extras.derived;
 
-  if (derived && derived[0] && derived[0].rExt === '.map') {
-    return derived[0];
+  return popMapFromArray(derived) || popMapFromArray(extraDerived);
+}
+
+function popMapFromArray(derived) {
+  if (!Array.isArray(derived)) {
+    return null;
+  }
+  var index = derived.findIndex(function (ele) {
+    return ele.rExt === '.map';
+  });
+
+  if (index > -1) {
+    return derived.splice(index, 1)[0];
   }
 
   return null;
